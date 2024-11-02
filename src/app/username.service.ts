@@ -23,5 +23,14 @@ export class UsernameService {
   login(username: string, password: string): Observable<any> {
     return this.http.post('http://localhost:3000/login', { username, password });
   }
+  getAllUserNames(): Observable<any> {
+    return this.http.get(`http://localhost:3000/getAllUsernames`);
+  }
+
+  changePassword(username:string,newPassword: string): Observable<any> {
+    const url = `http://localhost:3000/changePass`;
+    return this.http.put(url, { newPassword,username });
+  }
+
 
 }

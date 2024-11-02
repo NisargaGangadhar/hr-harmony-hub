@@ -51,17 +51,71 @@ app.post('/signup', (req, res) => {
   
   app.post('/login', (req, res) => {
     const { username, password } = req.body;
-  
-    const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
-    db.query(sql, [username, password], (err, results) => {
+
+    // Check if username exists
+    const sqlCheckUser = 'SELECT * FROM users WHERE username = ?';
+    db.query(sqlCheckUser, [username], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'An error occurred during login.' });
+        }
+
+        if (results.length === 0) {
+            // Username not found
+            return res.status(401).json({ error: 'Username not found, please signup.' });
+        }
+
+        // Check for both username and password
+        const sqlCheckCredentials = 'SELECT * FROM users WHERE username = ? AND password = ?';
+        db.query(sqlCheckCredentials, [username, password], (err, results) => {
+            if (err) {
+                return res.status(500).json({ error: 'An error occurred during login.' });
+            }
+
+            if (results.length > 0) {
+                res.json({ message: 'Login successful' });
+            } else {
+                res.status(401).json({ error: 'Invalid credentials, please use forgot password.' });
+            }
+        });
+    });
+});
+
+
+  app.get('/getAllUsernames',(req,res) => {
+
+    const query = `SELECT username FROM users`;
+    
+    db.query(query, (err, results) => {
       if (err) {
-        return res.status(500).json({ error: 'Error during login' });
-      }
-  
-      if (results.length > 0) {
-        res.json({ message: 'Login successful' });
+        console.error('Error executing MySQL query:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
       } else {
-        res.status(401).json({ error: 'Invalid credentials or username not found' });
+        console.log("username>>>",results);
+        const columnValues = results.map(result => result.username);
+        res.json({ columnValues });
       }
     });
-  });
+
+    app.put('/changePass', (req, res) => {
+      const username = req.body.username;
+      const newPassword = req.body.newPassword;
+    
+      db.query(`UPDATE users SET password=? WHERE username = ?`, [newPassword, username], (err, results) => {
+        if (err) {
+          console.error('Error updating password:', err);
+          res.status(500).json({ message: 'Internal Server Error' });
+          return;
+        }
+    
+        if (results.affectedRows > 0) {
+          console.log('Password updated successfully');
+          res.status(200).json({ success: true, message: 'Successfully updated password' });
+        } else {
+          console.error('No rows affected. Password not updated.');
+          res.status(400).json({ success: false, message: 'Failed to update password' });
+        }
+      });
+    });
+    
+    
+    });

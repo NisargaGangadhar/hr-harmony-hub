@@ -47,6 +47,22 @@ isPasswordStrong(password: string): boolean {
 
   ngOnInit(): void {
 
+    this.loadUserNames();
+
+  }
+
+  loadUserNames() {
+   
+    this.usernameService.getAllUserNames().subscribe(
+      response => {
+        this.usernamelist = response.columnValues;
+        this.usernamelist.push('admin');
+      },
+      error => {
+        console.error('Error fetching column values:', error);
+      }
+    );
+    
   }
 
 
@@ -78,6 +94,7 @@ isPasswordStrong(password: string): boolean {
         // this.isAuthorised = true; // Assuming login means authorized
         // this.usernameService.setAuthMode(this.isAuthorised);
         this.errorMessage = 'Login Successful';
+        this.router.navigate(['/upload-cv']);
       },
       (error) => {
         // Use the API's error message
